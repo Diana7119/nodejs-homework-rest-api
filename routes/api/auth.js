@@ -1,29 +1,41 @@
 const express = require("express");
-const { validateBody, authenticate, upload } = require("../../middlewares");
-const ctrl = require("../../controllers/auth");
+const ctrl = require("../../controllers/contacts");
+
+const { validateBody, isValidId, authenticate } = require("../../middlewares");
+const {
+  contactsValidation,
+  updateFavorites,
+} = require("../../validation/contactsValidation");
 
 const router = express.Router();
-const { schemas } = require("../../validation/authValidation");
+
+router.get("/", authenticate, ctrl.getAll);
+
+router.get("/:contactId", authenticate, isValidId, ctrl.getById);
 
 router.post(
-  "/register",
-  validateBody(schemas.registerValidation),
-  ctrl.register
+  "/",
+  authenticate,
+  validateBody(contactsValidation),
+  ctrl.addContact
 );
 
-router.post("/login", validateBody(schemas.loginValidation), ctrl.login);
-
-router.get("/current", authenticate, ctrl.getCurrent);
-
-router.post("/logout", authenticate, ctrl.logout);
-
-router.patch("/subscription", authenticate, ctrl.patchSubscription);
+router.put(
+  "/:contactId",
+  authenticate,
+  isValidId,
+  validateBody(contactsValidation),
+  ctrl.updateContactById
+);
 
 router.patch(
-  "/avatars",
+  "/:contactId/favorite",
   authenticate,
-  upload.single("avatar"),
-  ctrl.updateAvatar
+  isValidId,
+  validateBody(updateFavorites),
+  ctrl.updateFavorite
 );
+
+router.delete("/:contactId", authenticate, isValidId, ctrl.deleteContact);
 
 module.exports = router;
